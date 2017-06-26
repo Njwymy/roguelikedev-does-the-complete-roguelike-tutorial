@@ -130,10 +130,8 @@ pub fn run() {
     let mut tick = 0;
 
     let mut map = Map::new(80,45);
-
     map.set(1,3, Tile::wall());
     map.set(1,4, Tile::wall());
-
     map.set(3,3, Tile::wall());
     map.set(4,3, Tile::wall());
 
@@ -142,10 +140,6 @@ pub fn run() {
     let player = Object::new(map.width() / 2, map.height() / 2, '@', colors::WHITE);
     let npc = Object::new(map.width() / 2 - 5, map.height() / 2, '@', colors::YELLOW);
     let mut objects = [player, npc];
-
-    
-
-
 
     //Typically a game loop is considered to be 
     //Get Input, Update Logic, Render
@@ -159,10 +153,7 @@ pub fn run() {
             con.print(1, 1, tick.to_string());
 
             render_all(&mut root, &mut con, &objects, &map);
-            
         }
-
-        
 
         //Get input / Update
         let player = &mut objects[0];
