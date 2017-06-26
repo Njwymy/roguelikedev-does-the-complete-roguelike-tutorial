@@ -32,7 +32,7 @@ impl Object{
         let new_x = self.x + dx;
         let new_y = self.y + dy;
 
-        if !map.tiles[new_x as usize][new_y as usize].blocked {
+        if !map.at(new_x, new_y).blocked {
             self.x = new_x;
             self.y = new_y;   
         }
@@ -64,9 +64,10 @@ impl Tile {
 
 
 //TODO just for fun, make this one vec 
-//index into this via y * MAP_WIDTH + x
 struct Map {
-    tiles: Vec<Vec<Tile>>,
+    tiles: Vec<Tile>,
+    width:i32,
+    height:i32,
 }
 
 
@@ -78,33 +79,37 @@ impl Map {
     //less wonky math when dealing with negatives
     
     //Real question do we want to allow maps of size 0?
-    fn new(width:i32, height:i32) -> Self {
+    pub fn new(width:i32, height:i32) -> Self {
         assert!(width >= 0, "width must be greater than or 0!");
         assert!(height >= 0, "height must be greater than or 0!");
 
         //
         Map {
-            tiles: vec![vec![Tile::empty(); height as usize]; width as usize]
+            tiles: vec![Tile::empty(); (height * width) as usize],
+            width:width,
+            height:height,
         }
     }
 
+    fn index_at(&self, x:i32, y:i32) -> usize {
+        return (y * self.width() + x) as usize;
+
+    }
     fn at(&self, x:i32, y:i32) -> &Tile {
-        &self.tiles[x as usize][y as usize]
+        &self.tiles[self.index_at(x,y)]
     }
 
     fn set(&mut self, x:i32, y:i32, tile:Tile){
-        self.tiles[x as usize][y as usize] = tile;
+        let index = self.index_at(x,y);
+        self.tiles[index] = tile;
     }
 
     fn width(&self) -> i32 {
-        self.tiles.len() as i32
+        self.width
     }
 
     fn height(&self) -> i32 {
-        match self.tiles.first() {
-            Some(col) => { col.len() as i32 },
-            None => { 0 }
-        }
+        self.height
     }
 }
 
