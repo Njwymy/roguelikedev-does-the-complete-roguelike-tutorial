@@ -1,9 +1,6 @@
 
 extern crate tcod;
 
-
-use std::iter::Iterator;
-
 use tcod::console::*;
 use tcod::colors;
 use tcod::Color;
@@ -65,10 +62,16 @@ impl Tile {
     }
 }
 
+
+//TODO just for fun, make this one vec 
+//index into this via y * MAP_WIDTH + x
 struct Map {
     tiles: Vec<Vec<Tile>>,
 }
 
+
+//TODO Maybe one day we can implement an iterator over the map
+//that will give the (x,y) coord of the tile and the tile itself
 impl Map {
     //We use i32's for the map's width / height because
     //easier intergration with libtcod
@@ -79,9 +82,18 @@ impl Map {
         assert!(width >= 0, "width must be greater than or 0!");
         assert!(height >= 0, "height must be greater than or 0!");
 
+        //
         Map {
             tiles: vec![vec![Tile::empty(); height as usize]; width as usize]
         }
+    }
+
+    fn at(&self, x:i32, y:i32) -> &Tile {
+        &self.tiles[x as usize][y as usize]
+    }
+
+    fn set(&mut self, x:i32, y:i32, tile:Tile){
+        self.tiles[x as usize][y as usize] = tile;
     }
 
     fn width(&self) -> i32 {
@@ -113,8 +125,12 @@ pub fn run() {
     let mut tick = 0;
 
     let mut map = Map::new(80,45);
-    map.tiles[30][22] = Tile::wall();
-    map.tiles[50][22] = Tile::wall();
+
+    map.set(1,3, Tile::wall());
+    map.set(1,4, Tile::wall());
+
+    map.set(3,3, Tile::wall());
+    map.set(4,3, Tile::wall());
 
     let mut con = Offscreen::new(map.width(), map.height());
 
@@ -159,10 +175,9 @@ pub fn run() {
                 object.draw(con);
             }
 
-            for (x,row) in map.tiles.iter().enumerate() {
-                for (y, cell) in row.iter().enumerate() {
-                    
-                    let wall = cell.block_sight;
+            for x in 0 .. map.width() {
+                for y in 0 .. map.height() {
+                    let wall = map.at(x,y).block_sight;
                     let (x,y) = (x as i32, y as i32); //convert from index type usize to map type i32
 
                     if wall {
@@ -173,7 +188,6 @@ pub fn run() {
                     }
                 }
             }
-
 
             blit(
                 //from
