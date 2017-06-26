@@ -1,6 +1,5 @@
-
+#![allow(dead_code)]
 extern crate tcod;
-
 
 use std::iter::Iterator;
 
@@ -77,7 +76,7 @@ impl Tile {
 type Map = Vec<Vec<Tile>>;
 
 fn make_map() -> Map {
-    let mut map = vec![vec![Tile::empty(); MAP_HEIGHT as usize]; MAP_WIDTH as usize];
+    let map = vec![vec![Tile::empty(); MAP_HEIGHT as usize]; MAP_WIDTH as usize];
 
     map
 }
