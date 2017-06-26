@@ -10,11 +10,6 @@ use tcod::Color;
 use tcod::input::Key;
 use tcod::input::KeyCode::*;
 
-const SCREEN_WIDTH: i32 = 80;
-const SCREEN_HEIGHT: i32 = 50;
-const LIMIT_FPS: i32 = 20;
-
-
 const COLOR_DARK_WALL: Color = Color { r: 0, g: 0, b: 100 };
 const COLOR_DARK_GROUND: Color = Color { r: 50, g: 50, b: 150 };
 
@@ -106,14 +101,14 @@ pub fn run() {
 
     //OpenGL is needed on my mac. Otherwize it will render a white screen on startup
     let mut root = Root::initializer()
-        .font("arial10x10.png", FontLayout::Tcod)
-        .font_type(FontType::Greyscale)
-        .size(SCREEN_WIDTH, SCREEN_HEIGHT)
-        .title("Rust/libtcod tutorial")
-        .renderer(Renderer::OpenGL)     
-        .init();
-    
-    tcod::system::set_fps(LIMIT_FPS);
+            .font("arial10x10.png", FontLayout::Tcod)
+            .font_type(FontType::Greyscale)
+            .size(80, 50) // width, height
+            .title("Rust/libtcod tutorial")
+            .renderer(Renderer::OpenGL)     
+            .init();
+
+    tcod::system::set_fps(20);
         
     let mut tick = 0;
 
