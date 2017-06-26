@@ -75,21 +75,24 @@ struct Map {
 }
 
 impl Map {
-    fn new(width:usize, height:usize) -> Self {
+    //We use i32's for the map's width / height because
+    //easier intergration with libtcod
+    //less wonky math when dealing with negatives
+    
+    //Real question do we want to allow maps of size 0?
+    fn new(width:i32, height:i32) -> Self {
+        assert!(width >= 0, "width must be greater than or 0!");
+        assert!(height >= 0, "height must be greater than or 0!");
+
         Map {
-            tiles: vec![vec![Tile::empty(); height]; width]
+            tiles: vec![vec![Tile::empty(); height as usize]; width as usize]
         }
     }
 
-    //We use width / height more often in the context of i32
-    //lets see.
-
-    //blah blah wont use full size of usize so might as well just truncate it
-    //to allow for easiser math.
     fn width(&self) -> i32 {
         self.tiles.len() as i32
     }
-    //I don't like this since this will fail...
+
     fn height(&self) -> i32 {
         match self.tiles.first() {
             Some(col) => { col.len() as i32 },
