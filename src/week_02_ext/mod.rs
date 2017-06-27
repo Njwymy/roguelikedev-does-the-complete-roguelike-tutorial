@@ -7,111 +7,17 @@ use tcod::Color;
 use tcod::input::Key;
 use tcod::input::KeyCode::*;
 
+mod object;
+mod tile;
+mod map;
+
+use week_02_ext::object::*;
+use week_02_ext::tile::*;
+use week_02_ext::map::*;
+
+
 const COLOR_DARK_WALL: Color = Color { r: 0, g: 0, b: 100 };
 const COLOR_DARK_GROUND: Color = Color { r: 50, g: 50, b: 150 };
-
-#[derive(Debug)]
-struct Object{
-    x:i32,
-    y:i32,
-    char:char,
-    color:Color
-}
-
-impl Object{
-    pub fn new(x:i32, y:i32, char:char, color:Color) -> Self {
-        Object{
-            x:x,
-            y:y,
-            char:char,
-            color:color,
-        }
-    }
-
-    pub fn move_by(&mut self,map:&Map, dx: i32, dy: i32) {
-        let new_x = self.x + dx;
-        let new_y = self.y + dy;
-
-        if !map.at(new_x, new_y).blocked {
-            self.x = new_x;
-            self.y = new_y;   
-        }
-    }
-
-    /// set the color and then draw the character that represents this object at its position
-    pub fn draw(&self, con: &mut Console) {
-        con.set_default_foreground(self.color);
-        con.put_char(self.x, self.y, self.char, BackgroundFlag::None);
-    }
-
-}
-
-#[derive(Clone, Copy, Debug)]
-struct Tile {
-    blocked: bool,
-    block_sight: bool,
-}
-
-impl Tile {
-    pub fn empty() -> Self {
-        Tile{blocked: false, block_sight: false}
-    }
-
-    pub fn wall() -> Self {
-        Tile{blocked: true, block_sight: true}
-    }
-}
-
-
-//TODO just for fun, make this one vec 
-struct Map {
-    tiles: Vec<Tile>,
-    width:i32,
-    height:i32,
-}
-
-
-//TODO Maybe one day we can implement an iterator over the map
-//that will give the (x,y) coord of the tile and the tile itself
-impl Map {
-    //We use i32's for the map's width / height because
-    //easier intergration with libtcod
-    //less wonky math when dealing with negatives
-    
-    //Real question do we want to allow maps of size 0?
-    pub fn new(width:i32, height:i32) -> Self {
-        assert!(width >= 0, "width must be greater than or 0!");
-        assert!(height >= 0, "height must be greater than or 0!");
-
-        //
-        Map {
-            tiles: vec![Tile::empty(); (height * width) as usize],
-            width:width,
-            height:height,
-        }
-    }
-
-    fn index_at(&self, x:i32, y:i32) -> usize {
-        return (y * self.width() + x) as usize;
-
-    }
-    fn at(&self, x:i32, y:i32) -> &Tile {
-        &self.tiles[self.index_at(x,y)]
-    }
-
-    fn set(&mut self, x:i32, y:i32, tile:Tile){
-        let index = self.index_at(x,y);
-        self.tiles[index] = tile;
-    }
-
-    fn width(&self) -> i32 {
-        self.width
-    }
-
-    fn height(&self) -> i32 {
-        self.height
-    }
-}
 
 
 pub fn run() {
