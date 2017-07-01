@@ -13,10 +13,14 @@ use tcod::input::KeyCode::*;
 mod object;
 mod tile;
 mod map;
+mod draw_info;
 
 use week_02_ext::object::*;
 use week_02_ext::tile::*;
 use week_02_ext::map::*;
+use week_02_ext::draw_info::*;
+use week_02_ext::draw_info::ascii::*;
+use week_02_ext::draw_info::tileset::*;
 
 
 const COLOR_DARK_WALL: Color = Color { r: 0, g: 0, b: 100 };
@@ -24,67 +28,9 @@ const COLOR_DARK_GROUND: Color = Color { r: 50, g: 50, b: 150 };
 
 
 pub fn run() {
-
-
-    let player_ascii : AsciiDrawInfo = AsciiDrawInfo{
-        char:'@',
-        color:colors::WHITE,
-    };
-    let player_tile : TileDrawInfo = TileDrawInfo::new(
-        char::from_u32(258).unwrap()
-    );
-
-    let orc_ascii : AsciiDrawInfo = AsciiDrawInfo{
-        char:'O',
-        color:colors::GREEN,
-    };
-    let orc_tile : TileDrawInfo = TileDrawInfo::new(
-        char::from_u32(259).unwrap()
-    );
-
-    /*
-    let wall_tile = char::from_u32(256).unwrap();
-    let floor_tile = char::from_u32(257).unwrap();
-    let player_tile = char::from_u32(258).unwrap();
-    let orc_tile = char::from_u32(259).unwrap();
-    let troll_tile = char::from_u32(260).unwrap();
-    let scroll_tile = char::from_u32(261).unwrap();
-    let healingpotion_tile = char::from_u32(262).unwrap();
-    let sword_tile = char::from_u32(263).unwrap();
-    let shield_tile = char::from_u32(264).unwrap();
-    let stairsdown_tile = char::from_u32(265).unwrap();
-    let dagger_tile = char::from_u32(266).unwrap();
-*/
-
-/*
-    let player_tile : TileDrawInfo = TileDrawInfo{
-        char: char::from_u32(258).unwrap(),
-        foreground:colors::WHITE,
-        background:colors::BLACK,
-    };
-*/
-    //OpenGL is needed on my mac. Otherwize it will render a white screen on startup
-
-    //#The font has 32 chars in a row, and there's a total of 10 rows. Increase the "10" when you add new rows to the sample font file
-    //libtcod.console_set_custom_font('TiledFont.png', libtcod.FONT_TYPE_GREYSCALE | libtcod.FONT_LAYOUT_TCOD, 32, 10)
-
-
+    
     let ascii_rendering = false;
-
-    
     let mut root = create_root(80,50, ascii_rendering);
-    
-
-/*
-    let mut root = Root::initializer()
-            .font("arial10x10.png", FontLayout::Tcod)
-            .font_type(FontType::Greyscale)
-            .size(80, 50) // width, height
-            .title("Rust/libtcod tutorial")
-            .renderer(Renderer::OpenGL)     
-            .init();
-*/
-
     tcod::system::set_fps(20);
         
     let mut tick = 0;
@@ -97,8 +43,8 @@ pub fn run() {
 
     let mut con = Offscreen::new(map.width(), map.height());
 
-    let player = Object::new(map.width() / 2, map.height() / 2, player_ascii, player_tile);
-    let npc = Object::new(map.width() / 2 - 5, map.height() / 2, orc_ascii,orc_tile);
+    let player = Object::new(map.width() / 2, map.height() / 2, ascii::player, *tileset::player);
+    let npc = Object::new(map.width() / 2 - 5, map.height() / 2, ascii::orc, *tileset::orc);
     let mut objects = [player, npc];
 
     //Typically a game loop is considered to be 
@@ -127,6 +73,7 @@ pub fn run() {
     }
 
     //We need to change which font and some other metadata based on which rendering method we are using
+    //OpenGL is needed on my mac. Otherwize it will render a white screen on startup
     fn create_root(width:i32, height:i32, ascii_rendering:bool) -> Root {
 
         if ascii_rendering {
@@ -141,12 +88,14 @@ pub fn run() {
                 return root;
 
         }else{
+            
             let root = Root::initializer()
                 .renderer(Renderer::OpenGL)
                 .size(width,height)
                 .title("Rust/libtcod tutorial")
                 .font("TiledFont.png", FontLayout::Tcod)
                 .font_type(FontType::Greyscale)
+                //#The font has 32 chars in a row, and there's a total of 10 rows. Increase the "10" when you add new rows to the sample font file
                 .font_dimensions(32,10)
                 .init();
 
