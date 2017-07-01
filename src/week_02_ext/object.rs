@@ -1,24 +1,50 @@
 
 use tcod::Color;
+use tcod::colors;
+
 use tcod::console::*;
 
 use week_02_ext::*;
 
+
+#[derive(Clone, Copy, Debug)]
+pub struct AsciiDrawInfo {
+    pub char:char,
+    pub color:Color,
+}
+
+#[derive(Clone, Copy, Debug)]
+pub struct TileDrawInfo {
+    pub char:char,
+    pub foreground:Color,
+    pub background:Color,
+}
+
+impl TileDrawInfo {
+    pub fn new(char:char) -> TileDrawInfo {
+        TileDrawInfo{
+            char:char,
+            foreground:colors::WHITE,
+            background:colors::BLACK,
+        }
+    }
+}
+
 #[derive(Debug)]
 pub struct Object{
-    x:i32,
-    y:i32,
-    char:char,
-    color:Color
+    pub x:i32,
+    pub y:i32,
+    pub ascii:AsciiDrawInfo,
+    pub tile:TileDrawInfo,
 }
 
 impl Object{
-    pub fn new(x:i32, y:i32, char:char, color:Color) -> Self {
+    pub fn new(x:i32, y:i32, ascii:AsciiDrawInfo, tile:TileDrawInfo) -> Self {
         Object{
             x:x,
             y:y,
-            char:char,
-            color:color,
+            ascii:ascii,
+            tile:tile,
         }
     }
 
@@ -31,11 +57,4 @@ impl Object{
             self.y = new_y;   
         }
     }
-
-    /// set the color and then draw the character that represents this object at its position
-    pub fn draw(&self, con: &mut Console) {
-        con.set_default_foreground(self.color);
-        con.put_char(self.x, self.y, self.char, BackgroundFlag::None);
-    }
-
 }

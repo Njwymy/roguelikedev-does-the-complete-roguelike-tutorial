@@ -5,3 +5,4 @@ authors = ["melwute"]
 
 [dependencies]
 tcod = "0.11"
+tcod-sys = "4.0.1"
