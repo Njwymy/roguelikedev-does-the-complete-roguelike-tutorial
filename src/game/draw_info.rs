@@ -25,7 +25,7 @@ impl TilesetDrawInfo {
 }
 
 pub mod tileset {
-    use week_02_ext::draw_info::TilesetDrawInfo;
+    use game::draw_info::TilesetDrawInfo;
     use std::char;
     use tcod::colors;
 
@@ -68,7 +68,7 @@ pub mod tileset {
 }
 
 pub mod ascii {
-    use week_02_ext::draw_info::AsciiDrawInfo;
+    use game::draw_info::AsciiDrawInfo;
     use tcod::colors;
 
     pub static player : AsciiDrawInfo = AsciiDrawInfo{

@@ -15,12 +15,12 @@ mod tile;
 mod map;
 mod draw_info;
 
-use week_02_ext::object::*;
-use week_02_ext::tile::*;
-use week_02_ext::map::*;
-use week_02_ext::draw_info::*;
-use week_02_ext::draw_info::ascii::*;
-use week_02_ext::draw_info::tileset::*;
+use game::object::*;
+use game::tile::*;
+use game::map::*;
+use game::draw_info::*;
+use game::draw_info::ascii::*;
+use game::draw_info::tileset::*;
 
 
 const COLOR_DARK_WALL: Color = Color { r: 0, g: 0, b: 100 };

@@ -4,7 +4,7 @@ use tcod::colors;
 
 use tcod::console::*;
 
-use week_02_ext::*;
+use game::*;
 
 
 #[derive(Debug)]

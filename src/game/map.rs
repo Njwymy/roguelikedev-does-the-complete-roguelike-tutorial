@@ -1,6 +1,6 @@
 
 
-use week_02_ext::tile::*;
+use game::tile::*;
 
 pub struct Map {
     tiles: Vec<Tile>,
