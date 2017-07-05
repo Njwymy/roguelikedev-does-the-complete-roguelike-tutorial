@@ -17,9 +17,8 @@ I want to think of the rendering to be set into a "mode" either tile or ascii. W
 But all of that is extra work for something that might be thrown away later so this works for now.
 
 #week 3
-
-TODO:Things I want to do diffrently.
-Instead of creating a dungeon do something outdoorsy. Create random "houses" or mountain blocks.alloc
+Things to do differently for the game.
+Instead of creating a dungeon do something outdoorsy. Create random "houses" or mountain blocks
 Randomly spawn the player in one of these dungeon rooms.
 Maybe split up the map gen stuff into their own files. One for the dungeon style
 one for my "Out doors" one
