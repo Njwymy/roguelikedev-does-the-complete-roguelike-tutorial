@@ -1,6 +1,7 @@
 
 extern crate tcod;
 extern crate tcod_sys;
+extern crate rand;
 
 use std::char;
 
@@ -14,6 +15,7 @@ mod object;
 mod tile;
 mod map;
 mod draw_info;
+mod rect;
 
 use game::object::*;
 use game::tile::*;
@@ -29,22 +31,18 @@ const COLOR_DARK_GROUND: Color = Color { r: 50, g: 50, b: 150 };
 
 pub fn run() {
     
-    let ascii_rendering = false;
+    let ascii_rendering = true;
     let mut root = create_root(80,50, ascii_rendering);
     tcod::system::set_fps(20);
         
     let mut tick = 0;
 
-    let mut map = Map::new(80,45);
-    map.set(1,3, Tile::wall());
-    map.set(1,4, Tile::wall());
-    map.set(3,3, Tile::wall());
-    map.set(4,3, Tile::wall());
+    let (mut map, (start_x, start_y)) = Map::create_random(80,45);
 
     let mut con = Offscreen::new(map.width(), map.height());
 
-    let player = Object::new(map.width() / 2, map.height() / 2, ascii::player, *tileset::player);
-    let npc = Object::new(map.width() / 2 - 5, map.height() / 2, ascii::orc, *tileset::orc);
+    let player = Object::new(start_x, start_y, ascii::player, *tileset::player);
+    let npc = Object::new(start_x + 1, start_y + 1, ascii::orc, *tileset::orc);
     let mut objects = [player, npc];
 
     //Typically a game loop is considered to be 
