@@ -91,13 +91,16 @@ impl Map {
         //Then "carve" the empty rooms out.
         let mut rooms = vec![];
 
+        //save local copy of thread_rng. Mostly for readability
+        let mut rng = rand::thread_rng();
+
         for _ in 0..MAX_ROOMS {
             // random width and height
-            let w = rand::thread_rng().gen_range(ROOM_MIN_SIZE, ROOM_MAX_SIZE + 1);
-            let h = rand::thread_rng().gen_range(ROOM_MIN_SIZE, ROOM_MAX_SIZE + 1);
+            let w = rng.gen_range(ROOM_MIN_SIZE, ROOM_MAX_SIZE + 1);
+            let h = rng.gen_range(ROOM_MIN_SIZE, ROOM_MAX_SIZE + 1);
             // random position without going out of the boundaries of the map
-            let x = rand::thread_rng().gen_range(0, map.width() - w);
-            let y = rand::thread_rng().gen_range(0, map.height() - h);
+            let x = rng.gen_range(0, map.width() - w);
+            let y = rng.gen_range(0, map.height() - h);
             let new_room = Rect::new(x, y, w, h);
 
             // run through the other rooms and see if they intersect with this one
