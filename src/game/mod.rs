@@ -3,8 +3,6 @@ extern crate tcod;
 extern crate tcod_sys;
 extern crate rand;
 
-use std::char;
-
 use tcod::console::*;
 use tcod::colors;
 use tcod::Color;
@@ -18,12 +16,8 @@ mod draw_info;
 mod rect;
 
 use game::object::*;
-use game::tile::*;
 use game::map::*;
 use game::draw_info::*;
-use game::draw_info::ascii::*;
-use game::draw_info::tileset::*;
-
 
 const COLOR_DARK_WALL: Color = Color { r: 0, g: 0, b: 100 };
 const COLOR_DARK_GROUND: Color = Color { r: 50, g: 50, b: 150 };
@@ -37,7 +31,7 @@ pub fn run() {
         
     let mut tick = 0;
 
-    let (mut map, (start_x, start_y)) = Map::create_random(80,45);
+    let (map, (start_x, start_y)) = Map::create_random_rooms(80,45);
 
     let mut con = Offscreen::new(map.width(), map.height());
 

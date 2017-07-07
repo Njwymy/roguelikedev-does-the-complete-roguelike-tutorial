@@ -77,7 +77,7 @@ impl Map {
     }
 
 
-    pub fn create_random(width:i32, height:i32) -> (Self, (i32,i32)){
+    pub fn create_random_rooms(width:i32, height:i32) -> (Self, (i32,i32)){
         const ROOM_MAX_SIZE: i32 = 10;
         const ROOM_MIN_SIZE: i32 = 6;
         const MAX_ROOMS: i32 = 40;

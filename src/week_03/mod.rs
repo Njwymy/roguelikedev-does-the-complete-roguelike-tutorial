@@ -213,9 +213,6 @@ pub fn run() {
     
     let mut objects = [player];
 
-    
-    
-
     //Typically a game loop is considered to be 
     //Get Input, Update Logic, Render
     //But since we are a turn based and only render after we get input
