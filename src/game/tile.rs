@@ -8,6 +8,11 @@ pub struct Tile {
 }
 
 impl Tile {
+
+    pub fn is_wall(self) -> bool {
+        return self.block_sight && self.block_sight;
+    }
+
     pub fn empty() -> Self {
         Tile{blocked: false, block_sight: false}
     }

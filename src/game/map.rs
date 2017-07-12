@@ -1,4 +1,4 @@
-
+#![allow(dead_code)]
 extern crate rand;
 
 use rand::Rng;
@@ -76,7 +76,6 @@ impl Map {
         }
     }
 
-
     pub fn create_random_rooms(width:i32, height:i32) -> (Self, (i32,i32)){
         const ROOM_MAX_SIZE: i32 = 10;
         const ROOM_MIN_SIZE: i32 = 6;
@@ -140,6 +139,101 @@ impl Map {
         }
         (map, starting_position)
     }
+
+
+
+    //followed
+    //https://gamedevelopment.tutsplus.com/tutorials/generate-random-cave-levels-using-cellular-automata--gamedev-9664
+    pub fn create_caves(width:i32, height:i32) -> Self {
+
+        //set everything to a wall first.
+        let mut map = Map::new(width,height, Tile::wall());
+
+        let mut rng = rand::thread_rng();
+
+        let chance_to_be_empty = 0.46;
+
+        for tile in map.tiles.iter_mut(){
+            let chance = rng.gen::<f32>();
+            if chance < chance_to_be_empty {
+                *tile = Tile::empty(); 
+            }   
+        }
+        let sim_steps = 6;
+        for _ in 0 .. sim_steps {
+            map.caves_sim_step();
+        }
+
+     map
+
+    }
+
+    fn caves_sim_step(&mut self) {
+        //We need to create a new map since updating the map in place will cause wonky behaviours.
+        //TODO from a memory perspective we could just use boolean values to represent the walls
+        //this will save memory from the map allocations
+        //or... maybe just have 2 maps at a given time and free the last map once we are done with it.
+        //arena allocator as well!
+
+        let mut new_map = Map::new(self.width, self.height, Tile::wall());
+
+        let death_limit = 3;
+        let birth_limit = 4;
+
+        for x in 0 .. self.width {
+            for y in 0 .. self.height {
+                let empty_neighbor_count = self.count_empty_neighbours(x,y);
+                //The new value is based on our simulation rules
+                
+                //First, if a cell is empty but has too few neighbours, fill
+                if !self.at(x,y).is_wall() {
+                    if empty_neighbor_count < death_limit {
+                        new_map.set(x,y, Tile::wall());
+                    }
+                    else{
+                        new_map.set(x,y, Tile::empty());
+                    }
+                }
+                else{
+                     //Otherwise, if the cell is filled now, check if it has the right number of neighbours to be cleared
+                    if empty_neighbor_count > birth_limit {
+                        new_map.set(x,y, Tile::empty());
+                    }
+                    else{
+                        new_map.set(x,y, Tile::wall());
+                    }
+                }
+            }
+        }
+
+        *self = new_map;
+    }
+
+    //We should create a unit test for this..
+
+    pub fn count_empty_neighbours(&self, x:i32, y:i32) -> i32{
+        let mut count = 0;
+
+        for i in -1 .. 2 {
+            for j in -1 .. 2 {
+                let neighbour_x = x + i;
+                let neighbour_y = y + j;
+                //if we're looking at the middle point do nothing
+                if i ==  0 && j == 0 {}
+                else if neighbour_x < 0 || neighbour_y < 0 || neighbour_x >= self.width() || neighbour_y >= self.height() {
+                    //Out of bounds. Count as a neighbor?
+                    count += 1;
+                }else if !self.at(neighbour_x, neighbour_y).is_wall() {
+                    count += 1;
+                }
+            }
+        }
+        count
+    }
+
+
+
+   
 
     
 

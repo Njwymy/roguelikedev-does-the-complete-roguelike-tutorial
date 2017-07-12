@@ -31,7 +31,10 @@ pub fn run() {
         
     let mut tick = 0;
 
-    let (map, (start_x, start_y)) = Map::create_random_rooms(80,45);
+    //let (map, (start_x, start_y)) = Map::create_random_rooms(80,45);
+
+    let (start_x, start_y) = (0,0);
+    let map = Map::create_caves(80,45);
 
     let mut con = Offscreen::new(map.width(), map.height());
 
@@ -124,7 +127,7 @@ pub fn run() {
 
             for x in 0 .. map.width() {
                 for y in 0 .. map.height() {
-                    let wall = map.at(x,y).block_sight;
+                    let wall = map.at(x,y).is_wall();
                     let (x,y) = (x as i32, y as i32); //convert from index type usize to map type i32
 
                     if wall {
