@@ -21,4 +21,10 @@ Things to do differently for the game.
 Instead of creating a dungeon do something outdoorsy. Create random "houses" or mountain blocks
 Randomly spawn the player in one of these dungeon rooms.
 Maybe split up the map gen stuff into their own files. One for the dungeon style
-one for my "Out doors" one
+one for my "Outdoors" one.
+Perlin noise generation?
+
+
+#week 4
+Change it so that the render function doesn't update the map?
+Might be a decent idea to bundle the fov_map with the map struct itself.
