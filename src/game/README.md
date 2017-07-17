@@ -26,5 +26,6 @@ Perlin noise generation?
 
 
 #week 4
-Change it so that the render function doesn't update the map?
-Might be a decent idea to bundle the fov_map with the map struct itself.
+Put the FOV update code into the run() method. This should be put within its own module or bundled up with the map struct later on so we don't pollute the run method with a bunch of junk. But for now this works.
+
+The render code also only has fov stuff that is only related to rendering rather than updates like the tutorial has. 

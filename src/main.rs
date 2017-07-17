@@ -10,5 +10,5 @@ mod week_03;
 mod week_04;
 
 fn main() {
-    week_04::run();
+    game::run();
 }

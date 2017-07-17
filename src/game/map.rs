@@ -43,6 +43,11 @@ impl Map {
         &self.tiles[self.index_at(x,y)]
     }
 
+    pub fn at_mut(&mut self, x:i32, y:i32) -> &mut Tile {
+        let index = self.index_at(x,y);
+        &mut self.tiles[index]
+    }
+
     pub fn set(&mut self, x:i32, y:i32, tile:Tile){
         let index = self.index_at(x,y);
         self.tiles[index] = tile;
