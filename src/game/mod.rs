@@ -19,6 +19,7 @@ mod rect;
 use game::object::*;
 use game::map::*;
 use game::draw_info::*;
+use game::tile::*;
 
 const COLOR_DARK_WALL: Color = Color { r: 0, g: 0, b: 100 };
 const COLOR_DARK_GROUND: Color = Color { r: 50, g: 50, b: 150 };
@@ -37,7 +38,8 @@ pub fn run() {
     //let (map, (start_x, start_y)) = Map::create_random_rooms(80,45);
 
     let (start_x, start_y) = (0,0);
-    let mut map = Map::create_caves(80,45);
+    //let mut map = Map::create_caves(80,45);
+    let mut map = Map::new(80,45, Tile::empty());
 
     let mut fov_map = FovMap::new(map.width(), map.height());
     for y in 0..map.height() {

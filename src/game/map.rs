@@ -15,6 +15,7 @@ pub struct Map {
     tiles: Vec<Tile>,
     width:i32,
     height:i32,
+    out_of_bounds_tile: Tile,
 }
 
 //TODO Maybe one day we can implement an iterator over the map
@@ -32,7 +33,15 @@ impl Map {
             tiles: vec![default_tile; (height * width) as usize],
             width:width,
             height:height,
+            out_of_bounds_tile: Tile::wall(),
         }
+    }
+
+    pub fn in_bounds(&self, x:i32, y:i32) -> bool {
+        x >= 0 
+        && y >= 0
+        && x < self.width()
+        && y < self.height()
     }
 
     fn index_at(&self, x:i32, y:i32) -> usize {
@@ -40,6 +49,10 @@ impl Map {
 
     }
     pub fn at(&self, x:i32, y:i32) -> &Tile {
+        if !self.in_bounds(x,y) {
+            return &self.out_of_bounds_tile;
+        }
+
         &self.tiles[self.index_at(x,y)]
     }
 

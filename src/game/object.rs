@@ -29,7 +29,10 @@ impl Object{
         let new_x = self.x + dx;
         let new_y = self.y + dy;
 
-        if !map.at(new_x, new_y).blocked {
+        let in_bounds = map.in_bounds(new_x,new_y);
+        let not_blocked = !map.at(new_x,new_y).blocked;
+    
+        if not_blocked && in_bounds {
             self.x = new_x;
             self.y = new_y;   
         }
