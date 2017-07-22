@@ -14,6 +14,8 @@ use tcod::map::{Map as FovMap, FovAlgorithm};
 
 use rand::Rng;
 
+const PLAYER: usize = 0;
+
 const SCREEN_WIDTH: i32 = 80;
 const SCREEN_HEIGHT: i32 = 50;
 const LIMIT_FPS: i32 = 20;
@@ -208,6 +210,28 @@ fn move_by(id: usize, dx: i32, dy: i32, map: &Map, objects: &mut [Object]) {
     }
 }
 
+fn player_move_or_attack(dx: i32, dy: i32, map: &Map, objects: &mut [Object]) {
+    // the coordinates the player is moving to/attacking
+    let x = objects[PLAYER].x + dx;
+    let y = objects[PLAYER].y + dy;
+
+    // try to find an attackable object there
+    let target_id = objects.iter().position(|object| {
+        object.pos() == (x, y)
+    });
+
+    // attack if target found, move otherwise
+    match target_id {
+        Some(target_id) => {
+            println!("The {} laughs at your puny efforts to attack him!", objects[target_id].name);
+        }
+        None => {
+            move_by(PLAYER, dx, dy, map, objects);
+        }
+    }
+}
+
+
 
 #[derive(Clone, Copy, Debug)]
 struct Rect {
@@ -256,7 +280,12 @@ fn place_objects(room: Rect, objects: &mut Vec<Object>) {
     }
 }
 
-
+#[derive(Clone, Copy, Debug, PartialEq)]
+enum PlayerAction {
+    TookTurn,
+    DidntTakeTurn,
+    Exit,
+}
 
 pub fn run() {
 
@@ -286,7 +315,7 @@ pub fn run() {
     // generate map (at this point it's not drawn to the screen)
     let (mut map, (player_x, player_y)) = make_map(&mut objects);
 
-    objects[0].set_pos(player_x, player_y);
+    objects[PLAYER].set_pos(player_x, player_y);
 
     let mut fov_map = FovMap::new(MAP_WIDTH, MAP_HEIGHT);
     for y in 0..MAP_HEIGHT {
@@ -311,7 +340,7 @@ pub fn run() {
             con.print(1, 1, tick.to_string());
 
             let fov_recompute = {//for player lifetime
-                let player = &mut objects[0];
+                let player = &mut objects[PLAYER];
                 previous_player_location != (player.x, player.y)
             };
 
@@ -323,22 +352,37 @@ pub fn run() {
 
         //Get input / Update
         {
-            let player = &mut objects[0];
+            let player = &mut objects[PLAYER];
             previous_player_location = (player.x, player.y);
         }
-        let exit = handle_keys(&mut root, &mut objects, &map);
-        if exit {
+        let player_action = handle_keys(&mut root, &mut objects, &map);
+        if player_action == PlayerAction::Exit {
             break;
         }
 
-        tick += 1;
+        // let monstars take their turn
+        if objects[PLAYER].alive && player_action != PlayerAction::DidntTakeTurn {
+            for object in &objects {
+                // only if object is not player
+                //*const _ is pointer comparison?
+                if (object as *const _) != (&objects[PLAYER] as *const _) {
+                    println!("The {} growls!", object.name);
+                }
+            }
+        }
+
+        if player_action ==  PlayerAction::TookTurn {
+            tick += 1;
+        }
+
+        
 
     }
 
     fn render_all(root: &mut Root, con: &mut Offscreen, objects: &[Object], map: &mut Map, fov_map: &mut FovMap, fov_recompute: bool){
 
             if fov_recompute {
-                let player = &objects[0];
+                let player = &objects[PLAYER];
                 fov_map.compute_fov(player.x, player.y, TORCH_RADIUS, FOV_LIGHT_WALLS, FOV_ALGO);
             }
 
@@ -387,29 +431,43 @@ pub fn run() {
             con.clear();
     }
 
-    fn handle_keys(root: &mut Root, objects: &mut [Object], map: &Map) -> bool {
+    fn handle_keys(root: &mut Root, objects: &mut [Object], map: &Map) -> PlayerAction {
+
         
         //turn based
         let key = root.wait_for_keypress(true);
-        let player_id = 0;
+        let alive = objects[PLAYER].alive;
 
-        match key {
-            Key{code: Up, ..} => move_by(player_id,0,-1, map, objects),
-            Key{code: Down, ..} => move_by(player_id,0,1, map, objects),
-            Key{code: Left, ..} => move_by(player_id,-1,0, map, objects),
-            Key{code: Right, ..} => move_by(player_id,1,0, map, objects),
-            
-            Key{code: Enter, alt:true, ..} => {
+
+        match (key, alive) {
+            (Key{code: Up, ..},true )=>{ 
+                player_move_or_attack(0,-1, map, objects); 
+                return PlayerAction::TookTurn;
+            },
+            (Key{code: Down, ..} ,true) =>{
+                 player_move_or_attack(0,1, map, objects); 
+                 return PlayerAction::TookTurn;
+            },
+            (Key{code: Left, ..},true )=>{ 
+                player_move_or_attack(-1,0, map, objects); 
+                return PlayerAction::TookTurn;
+            },
+            (Key{code: Right, ..},true) =>{
+                player_move_or_attack(1,0, map, objects); 
+                return PlayerAction::TookTurn;
+            },
+            (Key{code: Enter, alt:true, ..}, .. )=> {
                 let currently_fullscreen = root.is_fullscreen();
                 root.set_fullscreen(!currently_fullscreen);
+                return PlayerAction::DidntTakeTurn;
             },
-            Key{code: Escape, ..} => {
-                return true
+            (Key{code: Escape, ..}, .. )=> {
+                return PlayerAction::Exit;
             }
             _ => {}, 
         }
 
-        false
+        PlayerAction::DidntTakeTurn
     }
 
 

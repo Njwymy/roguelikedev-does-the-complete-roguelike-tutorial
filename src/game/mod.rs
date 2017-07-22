@@ -26,6 +26,8 @@ const COLOR_DARK_GROUND: Color = Color { r: 50, g: 50, b: 150 };
 const COLOR_LIGHT_WALL: Color = Color { r: 130, g: 110, b: 50 };
 const COLOR_LIGHT_GROUND: Color = Color { r: 200, g: 180, b: 50 };
 
+const PLAYER : usize  = 0;
+
 
 pub fn run() {
     
@@ -45,7 +47,7 @@ pub fn run() {
     let mut map = Map::create_caves(80,45, &mut objects);
     //let mut map = Map::new(80,45, Tile::empty());
     //let (mut map, starting_pos) = Map::create_random_rooms(80,45,&mut objects);
-    //objects[0].set_pos_tup(starting_pos);
+    //objects[PLAYER].set_pos_tup(starting_pos);
 
     let mut fov_map = FovMap::new(map.width(), map.height());
     for y in 0..map.height() {
@@ -71,13 +73,13 @@ pub fn run() {
         //we need this to be true for the first tick.
         //probably need to stort this out so it can be in the update area.
         let fov_recompute = {//scope for player lifetime
-            let player = &mut objects[0];
+            let player = &mut objects[PLAYER];
             previous_player_location != (player.x, player.y)
         };
         //compute the fov before the first tick so the user can see something.
         //Update fov / explored cells
         if fov_recompute {
-            let player = &objects[0];
+            let player = &objects[PLAYER];
             fov_map.compute_fov(player.x, player.y, TORCH_RADIUS, FOV_LIGHT_WALLS, FOV_ALGO);
         }
         for x in 0 .. map.width() {
@@ -104,17 +106,40 @@ pub fn run() {
         //Get input / Update
         {
             {//for player borrow scope
-                let player = &mut objects[0];
+                let player = &mut objects[PLAYER];
                 previous_player_location = (player.x, player.y);
             }
-            let exit = handle_keys(&mut root, &mut objects, &map);
-            if exit {
+            let player_action = handle_keys(&mut root, &mut objects, &map);
+            if player_action == PlayerAction::Exit {
                 break;
+            }
+
+            // let monstars take their turn
+            if objects[PLAYER].alive && player_action != PlayerAction::DidntTakeTurn {
+                for object in &objects {
+                    // only if object is not player
+                    //*const _ is pointer comparison?
+                    if (object as *const _) != (&objects[PLAYER] as *const _) {
+                        
+                        println!("The {} growls!", object.name);
+                    }
+                }
+            }
+
+            if player_action ==  PlayerAction::TookTurn {
+                tick += 1;
             }
         }
         tick += 1;
 
     }
+}
+
+#[derive(Clone, Copy, Debug, PartialEq)]
+enum PlayerAction {
+    TookTurn,
+    DidntTakeTurn,
+    Exit,
 }
 
 
@@ -138,6 +163,27 @@ fn move_by(id: usize, dx: i32, dy: i32, map: &Map, objects: &mut [Object]) {
     let (new_x, new_y) = (x + dx, y + dy);
     if !is_blocked(new_x, new_y, map, objects) {
         objects[id].set_pos(new_x,new_y);
+    }
+}
+
+fn player_move_or_attack(dx: i32, dy: i32, map: &Map, objects: &mut [Object]) {
+    // the coordinates the player is moving to/attacking
+    let x = objects[PLAYER].x + dx;
+    let y = objects[PLAYER].y + dy;
+
+    // try to find an attackable object there
+    let target_id = objects.iter().position(|object| {
+        object.pos() == (x, y)
+    });
+
+    // attack if target found, move otherwise
+    match target_id {
+        Some(target_id) => {
+            println!("The {} laughs at your puny efforts to attack him!", objects[target_id].name);
+        }
+        None => {
+            move_by(PLAYER, dx, dy, map, objects);
+        }
     }
 }
 
@@ -184,7 +230,7 @@ fn create_root(width:i32, height:i32, ascii_rendering:bool) -> Root {
     }
 }
 
-fn handle_keys(root: &mut Root, objects: &mut [Object], map: &Map) -> bool {
+fn handle_keys(root: &mut Root, objects: &mut [Object], map: &Map) -> PlayerAction {
     
     //real time
     //I'm thinking if you want animations outside of a turnbased game this is what you 
@@ -197,26 +243,39 @@ fn handle_keys(root: &mut Root, objects: &mut [Object], map: &Map) -> bool {
     */
 
     //turn based
-    let key = root.wait_for_keypress(true);
-    let player_id = 0;
+        let key = root.wait_for_keypress(true);
+        let alive = objects[PLAYER].alive;
 
-    match key {
-        Key{code: Up, ..} => move_by(player_id,0,-1,map,objects),
-        Key{code: Down, ..} => move_by(player_id,0,1,map,objects),
-        Key{code: Left, ..} => move_by(player_id,-1,0,map,objects),
-        Key{code: Right, ..} => move_by(player_id,1,0,map,objects),
-        
-        Key{code: Enter, alt:true, ..} => {
-            let currently_fullscreen = root.is_fullscreen();
-            root.set_fullscreen(!currently_fullscreen);
-        },
-        Key{code: Escape, ..} => {
-            return true
+
+        match (key, alive) {
+            (Key{code: Up, ..},true )=>{ 
+                player_move_or_attack(0,-1, map, objects); 
+                return PlayerAction::TookTurn;
+            },
+            (Key{code: Down, ..} ,true) =>{
+                 player_move_or_attack(0,1, map, objects); 
+                 return PlayerAction::TookTurn;
+            },
+            (Key{code: Left, ..},true )=>{ 
+                player_move_or_attack(-1,0, map, objects); 
+                return PlayerAction::TookTurn;
+            },
+            (Key{code: Right, ..},true) =>{
+                player_move_or_attack(1,0, map, objects); 
+                return PlayerAction::TookTurn;
+            },
+            (Key{code: Enter, alt:true, ..}, .. )=> {
+                let currently_fullscreen = root.is_fullscreen();
+                root.set_fullscreen(!currently_fullscreen);
+                return PlayerAction::DidntTakeTurn;
+            },
+            (Key{code: Escape, ..}, .. )=> {
+                return PlayerAction::Exit;
+            }
+            _ => {}, 
         }
-        _ => {}, 
-    }
 
-    false
+        PlayerAction::DidntTakeTurn
 }
 
 fn render_all(root: &mut Root, con: &mut Offscreen, objects: &[Object], map: &Map, ascii_rendering:bool,fov_map: &FovMap){
