@@ -48,6 +48,11 @@ pub mod tileset {
                 char::from_u32(259).unwrap()
             )
         };
+        pub static ref troll : TilesetDrawInfo = {
+            TilesetDrawInfo::new(
+                char::from_u32(260).unwrap()
+            )
+        };
     }
 
     //reference for later tilesets
@@ -77,6 +82,10 @@ pub mod ascii {
     };
     pub static orc : AsciiDrawInfo = AsciiDrawInfo{
         char:'O',
-        color:colors::GREEN,
+        color:colors::DESATURATED_GREEN,
+    };
+    pub static troll : AsciiDrawInfo = AsciiDrawInfo {
+        char:'T',
+        color:colors::DARKER_GREEN,
     };
 }

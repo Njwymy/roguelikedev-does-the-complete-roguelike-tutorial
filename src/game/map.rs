@@ -1,14 +1,17 @@
 #![allow(dead_code)]
 extern crate rand;
 
+
 use rand::Rng;
 
 use std::cmp;
 
 use game::rect::*;
 use game::tile::*;
+use game::object::*;
+use game::draw_info::*;
 
-
+use game::is_blocked;
 
 
 pub struct Map {
@@ -94,7 +97,10 @@ impl Map {
         }
     }
 
-    pub fn create_random_rooms(width:i32, height:i32) -> (Self, (i32,i32)){
+
+
+
+    pub fn create_random_rooms(width:i32, height:i32, objects:&mut Vec<Object>) -> (Self, (i32,i32)){
         const ROOM_MAX_SIZE: i32 = 10;
         const ROOM_MIN_SIZE: i32 = 6;
         const MAX_ROOMS: i32 = 40;
@@ -130,6 +136,8 @@ impl Map {
 
                 //TODO just for the hell of it make it so the player spawns randomly in the first room.
                 let (new_x, new_y) = new_room.center();
+
+                Map::place_objects(new_room, objects);
                 
                 if rooms.is_empty() {
                     //First room since there isnt any other rooms
@@ -158,11 +166,33 @@ impl Map {
         (map, starting_position)
     }
 
+    pub fn place_objects(room: Rect, objects: &mut Vec<Object>) {
+        let MAX_ROOM_MONSTERS = 3;
+
+        // choose random number of monsters
+        let num_monsters = rand::thread_rng().gen_range(0, MAX_ROOM_MONSTERS + 1);
+
+        for _ in 0..num_monsters {
+            // choose random spot for this monster
+            let x = rand::thread_rng().gen_range(room.x1 + 1, room.x2);
+            let y = rand::thread_rng().gen_range(room.y1 + 1, room.y2);
+
+            let mut monster = if rand::random::<f32>() < 0.8 {  // 80% chance of getting an orc
+                // create an orc
+                Object::new(x, y, ascii::orc, *tileset::orc,"orc", true)
+            } else {
+                Object::new(x, y, ascii::troll, *tileset::troll,"troll", true)
+            };
+            monster.alive = true;
+            objects.push(monster);
+        }
+    }
+
 
 
     //followed
     //https://gamedevelopment.tutsplus.com/tutorials/generate-random-cave-levels-using-cellular-automata--gamedev-9664
-    pub fn create_caves(width:i32, height:i32) -> Self {
+    pub fn create_caves(width:i32, height:i32, objects:&mut Vec<Object>) -> Self {
 
         //set everything to a wall first.
         let mut map = Map::new(width,height, Tile::wall());
@@ -181,6 +211,36 @@ impl Map {
         for _ in 0 .. sim_steps {
             map.caves_sim_step();
         }
+
+        let max_spawn_chances = 200;
+        let mut spawn_attempts = 0;
+        
+        let desired_monsters = 15;
+        let mut spawn_amount = 0;
+        
+
+        while spawn_attempts < max_spawn_chances && spawn_amount <= desired_monsters {
+            let x = rng.gen_range(0, map.width());
+            let y = rng.gen_range(0, map.height());
+
+            let tile_blocked = is_blocked(x,y, &map, objects);
+
+            if !tile_blocked {
+                
+                let mut monster = if rand::random::<f32>() < 0.8 {  // 80% chance of getting an orc
+                // create an orc
+                    Object::new(x, y, ascii::orc, *tileset::orc,"orc", true)
+                } else {
+                    Object::new(x, y, ascii::troll, *tileset::troll,"troll", true)
+                };
+                monster.alive = true;
+                objects.push(monster);
+                spawn_amount +=1;   
+            }
+            spawn_attempts +=1;
+        }
+
+        println!("spawn amount: {} spawn_attempts: {}", spawn_amount, spawn_attempts);
 
      map
 

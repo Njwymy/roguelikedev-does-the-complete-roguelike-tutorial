@@ -35,11 +35,17 @@ pub fn run() {
         
     let mut tick = 0;
 
-    //let (map, (start_x, start_y)) = Map::create_random_rooms(80,45);
+    let mut player = Object::new(0, 0, ascii::player, *tileset::player, "player",true);
+    player.alive = true;
+    //start at a impossible value so we can trigger any sort of "player is at a diffrent location"
+    //logic on the first turn.
+    let mut previous_player_location = (-1,-1); 
 
-    let (start_x, start_y) = (0,0);
-    //let mut map = Map::create_caves(80,45);
-    let mut map = Map::new(80,45, Tile::empty());
+    let mut objects = vec!(player);
+    let mut map = Map::create_caves(80,45, &mut objects);
+    //let mut map = Map::new(80,45, Tile::empty());
+    //let (mut map, starting_pos) = Map::create_random_rooms(80,45,&mut objects);
+    //objects[0].set_pos_tup(starting_pos);
 
     let mut fov_map = FovMap::new(map.width(), map.height());
     for y in 0..map.height() {
@@ -49,16 +55,7 @@ pub fn run() {
         }
     }
 
-
     let mut con = Offscreen::new(map.width(), map.height());
-
-    let player = Object::new(start_x, start_y, ascii::player, *tileset::player);
-    //start at a impossible value so we can trigger any sort of "player is at a diffrent location"
-    //logic on the first turn.
-    let mut previous_player_location = (-1,-1); 
-
-    let npc = Object::new(start_x + 1, start_y + 1, ascii::orc, *tileset::orc);
-    let mut objects = [player, npc];
 
     //Typically a game loop is considered to be 
     //Get Input, Update Logic, Render
@@ -95,8 +92,6 @@ pub fn run() {
             }
         }
 
-
-
         //Render
         {
             con.set_default_foreground(colors::WHITE);
@@ -107,10 +102,12 @@ pub fn run() {
 
 
         //Get input / Update
-        {//for player borrow scope
-            let player = &mut objects[0];
-            previous_player_location = (player.x, player.y);
-            let exit = handle_keys(&mut root, player, &map);
+        {
+            {//for player borrow scope
+                let player = &mut objects[0];
+                previous_player_location = (player.x, player.y);
+            }
+            let exit = handle_keys(&mut root, &mut objects, &map);
             if exit {
                 break;
             }
@@ -119,6 +116,31 @@ pub fn run() {
 
     }
 }
+
+
+pub fn is_blocked(x: i32, y: i32, map: &Map, objects: &[Object]) -> bool {
+    
+    //First test if the map is blocked since this is cheaper.
+    //if it is do an early return with true.
+    let map_blocked = map.at(x,y).blocked;
+    if map_blocked { return true; }
+
+    //Then check if any objects exists in that location 
+    //and if they block.
+    objects.iter().any(|object| {
+        object.blocks && object.pos() == (x, y)
+    })
+}
+
+/// move by the given amount, if the destination is not blocked
+fn move_by(id: usize, dx: i32, dy: i32, map: &Map, objects: &mut [Object]) {
+    let (x, y) = objects[id].pos();
+    let (new_x, new_y) = (x + dx, y + dy);
+    if !is_blocked(new_x, new_y, map, objects) {
+        objects[id].set_pos(new_x,new_y);
+    }
+}
+
 
 //We need to change which font and some other metadata based on which rendering method we are using
 //OpenGL is needed on my mac. Otherwize it will render a white screen on startup
@@ -162,7 +184,7 @@ fn create_root(width:i32, height:i32, ascii_rendering:bool) -> Root {
     }
 }
 
-fn handle_keys(root: &mut Root, player: &mut Object, map: &Map) -> bool {
+fn handle_keys(root: &mut Root, objects: &mut [Object], map: &Map) -> bool {
     
     //real time
     //I'm thinking if you want animations outside of a turnbased game this is what you 
@@ -176,12 +198,13 @@ fn handle_keys(root: &mut Root, player: &mut Object, map: &Map) -> bool {
 
     //turn based
     let key = root.wait_for_keypress(true);
+    let player_id = 0;
 
     match key {
-        Key{code: Up, ..} => player.move_by(map,0,-1),
-        Key{code: Down, ..} => player.move_by(map,0,1),
-        Key{code: Left, ..} => player.move_by(map,-1,0),
-        Key{code: Right, ..} => player.move_by(map,1,0),
+        Key{code: Up, ..} => move_by(player_id,0,-1,map,objects),
+        Key{code: Down, ..} => move_by(player_id,0,1,map,objects),
+        Key{code: Left, ..} => move_by(player_id,-1,0,map,objects),
+        Key{code: Right, ..} => move_by(player_id,1,0,map,objects),
         
         Key{code: Enter, alt:true, ..} => {
             let currently_fullscreen = root.is_fullscreen();
@@ -202,7 +225,7 @@ fn render_all(root: &mut Root, con: &mut Offscreen, objects: &[Object], map: &Ma
     for object in objects {
         if fov_map.is_in_fov(object.x,object.y){
             if ascii_rendering {
-                con.set_default_foreground(object.tile.foreground);
+                con.set_default_foreground(object.ascii.color);
                 con.put_char(object.x, object.y, object.ascii.char, BackgroundFlag::None);
             }else{
                 con.put_char_ex(object.x,object.y,object.tile.char, object.tile.foreground, object.tile.background);
